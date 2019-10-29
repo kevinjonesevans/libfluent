@@ -28,6 +28,7 @@
 #define __FLUENT_QUEUE_HPP__
 
 #include <string>
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include "./message.hpp"
 

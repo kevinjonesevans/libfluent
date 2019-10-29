@@ -28,6 +28,7 @@
 #define __FLUENT_EMITTER_HPP__
 
 #include <string>
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <random>
 #include "./socket.hpp"
@@ -88,14 +89,22 @@ namespace fluent {
     };
     
    private:
-    int fd_;
+#ifdef _MSC_VER
+	   HANDLE fd_;
+#else
+	   int fd_;
+#endif
     bool enabled_;
     bool opened_;
     Format format_;
 
    public:
     FileEmitter(const std::string &fname, Format fmt=MsgPack);
+#ifdef _MSC_VER
+	FileEmitter(HANDLE fd, Format fmt = MsgPack);
+#else
     FileEmitter(int fd, Format fmt=MsgPack);
+#endif
     ~FileEmitter();
     void worker();
   };

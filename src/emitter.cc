@@ -32,7 +32,11 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <math.h>
+#ifdef _MSC_VER
+#include <synchapi.h>
+#else
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 #include "./fluent/emitter.hpp"
@@ -127,7 +131,11 @@ namespace fluent {
       int wait_msec = rand_dist(mt_rand) % wait_msec_max;
 
       debug(DBG, "reconnect after %d msec...", wait_msec);
-      usleep(wait_msec * 1000);
+#ifdef _MSC_VER
+	  Sleep(wait_msec * 1000);
+#else
+	  usleep(wait_msec * 1000);
+#endif
     }
 
     this->set_errmsg(this->sock_->errmsg());
@@ -176,17 +184,37 @@ namespace fluent {
     Emitter(), enabled_(false), opened_(false), format_(fmt) {
     // Setup socket.
 
-    this->fd_ = ::open(fname.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if (this->fd_ < 0) {
-      this->set_errmsg(strerror(errno));
-    } else {
-      this->opened_ = true;
-      this->enabled_ = true;
-      this->start_worker();
-    }
+#ifdef _MSC_VER
+	  this->fd_ = CreateFile(fname.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	  if (this->fd_ == INVALID_HANDLE_VALUE) {
+		  this->set_errmsg(strerror(errno));
+	  }
+	  else {
+		  this->opened_ = true;
+		  this->enabled_ = true;
+		  this->start_worker();
+	  }
+#else
+	  this->fd_ = ::open(fname.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+	  if (this->fd_ < 0) {
+		  this->set_errmsg(strerror(errno));
+	  }
+	  else {
+		  this->opened_ = true;
+		  this->enabled_ = true;
+		  this->start_worker();
+	  }
+#endif
+   
   }
+
+#ifdef _MSC_VER
+  FileEmitter::FileEmitter(HANDLE fd, Format fmt) :
+	  Emitter(), fd_(fd), enabled_(false), opened_(false), format_(fmt) {
+#else
   FileEmitter::FileEmitter(int fd, Format fmt) :
        Emitter(), fd_(fd), enabled_(false), opened_(false), format_(fmt) {
+#endif
        
 #ifndef _WIN32
     if (fcntl(fd, F_GETFL) < 0 && errno == EBADF) {
@@ -202,7 +230,11 @@ namespace fluent {
   FileEmitter::~FileEmitter() {
     this->stop_worker();
     if (this->enabled_ && this->opened_) {
+#ifdef _MSC_VER
+		CloseHandle(this->fd_);
+#else
       ::close(this->fd_);
+#endif
     }
   }
 
@@ -212,26 +244,42 @@ namespace fluent {
     Message *root;
     while (nullptr != (root = this->queue_.bulk_pop())) {
       for(Message *msg = root; msg; msg = msg->next()) {
+#ifdef _MSC_VER
+		DWORD dwBytesWritten = 0;
+		BOOL bErrorFlag = FALSE;
+#else
         int rc;
+#endif
         switch(this->format_) {
           case MsgPack: {
             msgpack::sbuffer buf;
             msgpack::packer <msgpack::sbuffer> pk(&buf);
             msg->to_msgpack(&pk);
-
-            rc = ::write(this->fd_, buf.data(), buf.size());
+#ifdef _MSC_VER
+			bErrorFlag = WriteFile(this->fd_, buf.data(), buf.size(), &dwBytesWritten, NULL);
+#else
+			rc = ::write(this->fd_, buf.data(), buf.size());
+#endif
             break;
           }
           case Text: {
             std::stringstream ss;
             msg->to_ostream(ss);
             const std::string& s = ss.str();
-            rc = ::write(this->fd_, s.c_str(), s.length());
+#ifdef _MSC_VER
+			bErrorFlag = WriteFile(this->fd_, s.c_str(), s.length(), &dwBytesWritten, NULL);
+#else
+			rc = ::write(this->fd_, s.c_str(), s.length());
+#endif
             break;
           }
         }
         
+#ifdef _MSC_VER
+		if (bErrorFlag || (dwBytesWritten == 0)) {
+#else
         if (rc < 0) {
+#endif
           this->set_errmsg(strerror(errno));
         }
       }
