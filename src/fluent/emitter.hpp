@@ -58,6 +58,7 @@ namespace fluent {
     void set_queue_limit(size_t limit);
     virtual bool emit(Message *msg);
     const std::string& errmsg() const { return this->errmsg_; }
+    bool is_connected();
   };
 
   class InetEmitter : public Emitter {

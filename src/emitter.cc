@@ -178,6 +178,10 @@ namespace fluent {
     }
   }
 
+  bool Emitter::is_connected() {
+    return this->sock_->is_connected();
+  }
+
   // ----------------------------------------------------------------
   // FileEmitter
   FileEmitter::FileEmitter(const std::string &fname, Format fmt) :

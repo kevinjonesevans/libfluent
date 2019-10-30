@@ -63,10 +63,11 @@ namespace fluent {
     
     MsgQueue* new_msgqueue();
     Message* retain_message(const std::string &tag);
-    bool emit(Message *msg);
+    bool emit_msg(Message *msg);
     const std::string& errmsg() const { return this->errmsg_; }
     void set_queue_limit(size_t limit);
     void set_tag_prefix(const std::string &prefix);
+    bool is_connected();
   };
 
 }

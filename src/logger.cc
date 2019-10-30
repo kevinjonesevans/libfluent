@@ -125,7 +125,7 @@ namespace fluent {
   }
 
 
-  bool Logger::emit(Message *msg) {
+  bool Logger::emit_msg(Message *msg) {
     if (this->msg_set_.find(msg) == this->msg_set_.end()) {
       this->errmsg_ = "invalid Message instance, "
         "should be got by Logger::retain_message()";
@@ -159,5 +159,9 @@ namespace fluent {
 
   void Logger::set_tag_prefix(const std::string &tag_prefix) {
     this->tag_prefix_ = tag_prefix;
+  }
+
+  bool Logger::is_connected() {
+    return this->emitter_[0]->is_connected();
   }
 }
