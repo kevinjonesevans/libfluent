@@ -28,6 +28,7 @@
 #define __FLUENT_EMITTER_HPP__
 
 #include <string>
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #include <random>
 #include "./socket.hpp"
@@ -81,13 +82,29 @@ namespace fluent {
   };
 
   class FileEmitter : public Emitter {
-  private:
-    int fd_;
+   public:
+    enum Format {
+      MsgPack,
+      Text,
+    };
+    
+   private:
+#ifdef _MSC_VER
+	   HANDLE fd_;
+#else
+	   int fd_;
+#endif
     bool enabled_;
     bool opened_;
-  public:
-    FileEmitter(const std::string &fname);
-    FileEmitter(int fd);
+    Format format_;
+
+   public:
+    FileEmitter(const std::string &fname, Format fmt=MsgPack);
+#ifdef _MSC_VER
+	FileEmitter(HANDLE fd, Format fmt = MsgPack);
+#else
+    FileEmitter(int fd, Format fmt=MsgPack);
+#endif
     ~FileEmitter();
     void worker();
   };
@@ -96,7 +113,7 @@ namespace fluent {
   private:
     MsgQueue *q_;
   public:
-    QueueEmitter(MsgQueue *q);
+    explicit QueueEmitter(MsgQueue *q);
     ~QueueEmitter();
     void worker();
     bool emit(Message *msg);    

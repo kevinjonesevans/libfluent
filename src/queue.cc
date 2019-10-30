@@ -32,7 +32,10 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <math.h>
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 #include "./fluent/queue.hpp"
