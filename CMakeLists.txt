@@ -5,7 +5,7 @@ if(POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif()
     
-SET(CMAKE_CXX_FLAGS "-Wall  -std=c++0x")
+SET(CMAKE_CXX_FLAGS "-Wall  -std=c++11")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 SET(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 SET(CMAKE_SHARED_LINKER_FLAGS "-dynamiclib")
