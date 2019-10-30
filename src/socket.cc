@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <winsock2.h>
 #include "windows.h"
 #include <ws2tcpip.h>
@@ -33,12 +33,12 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #endif
 
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -56,7 +56,11 @@ namespace fluent {
 #endif
   }
   Socket::~Socket() {
+#ifdef _MSC_VER
+	  closesocket(this->sock_);
+#else
     ::close(this->sock_);
+#endif
   }
   bool Socket::connect() {
     const bool DBG = false;
@@ -120,7 +124,11 @@ namespace fluent {
 #endif // _WIN32
       debug(false, "err: %s", this->errmsg_.c_str());
       this->is_connected_ = false;
-      ::close(this->sock_);
+#ifdef _MSC_VER
+	  closesocket(this->sock_);
+#else
+	  ::close(this->sock_);
+#endif
       return false;
     }
     return true;

@@ -52,15 +52,22 @@ namespace fluent {
     void new_forward(const std::string &host, int port=24224);
     void new_forward(const std::string &host, const std::string &port);
     void new_dumpfile(const std::string &fname);
-    void new_dumpfile(int fd);
+#ifdef _MSC_VER
+    void new_dumpfile(HANDLE fd);
+	void new_textfile(HANDLE fd);
+#else
+	void new_dumpfile(int fd);
+	void new_textfile(int fd);
+#endif
     void new_textfile(const std::string &fname);
-    void new_textfile(int fd);
+    
     MsgQueue* new_msgqueue();
     Message* retain_message(const std::string &tag);
-    bool emit(Message *msg);
+    bool emit_msg(Message *msg);
     const std::string& errmsg() const { return this->errmsg_; }
     void set_queue_limit(size_t limit);
     void set_tag_prefix(const std::string &prefix);
+    bool is_connected();
   };
 
 }

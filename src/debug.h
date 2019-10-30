@@ -27,12 +27,16 @@
 #ifndef SRC_DEBUG_H__
 #define SRC_DEBUG_H__
 
-#include <time.h>
+#ifdef _MSC_VER
+#else
 #include <sys/time.h>
+#endif
+
+#include <time.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
   #define debug(X, ...)                                                    \
     do {                                                                  \
       FILE * out = stdout;                                                \

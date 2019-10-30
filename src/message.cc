@@ -84,7 +84,11 @@ namespace fluent {
   }
   void Message::to_ostream(std::ostream &os) const {
     struct tm time;
-    gmtime_r(&(this->ts_), &time);
+#ifdef _MSC_VER
+    time = *gmtime(&(this->ts_));
+#else
+	gmtime_r(&(this->ts_), &time);
+#endif
     char buf[128];
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S+00:00", &time);
 
