@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
   while (true) {
     fluent::Message *msg = logger->retain_message("test.bench");
     msg->set("this", "test");
-    if (!logger->emit(msg)) {
-      std::cerr << "emit error: " << logger->errmsg() << std::endl;
+    if (!logger->emit_msg(msg)) {
+      std::cerr << "emit_msg error: " << logger->errmsg() << std::endl;
       break;
     }
     msg_count++;

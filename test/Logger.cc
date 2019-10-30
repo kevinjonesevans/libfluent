@@ -46,7 +46,7 @@ TEST_F(FluentTest, Logger) {
   fluent::Message *msg = logger->retain_message(tag);
   msg->set("url", "https://github.com");
   msg->set("port", 443);
-  logger->emit(msg);
+  logger->emit_msg(msg);
   std::string res_tag, res_ts, res_rec;
   get_line(&res_tag, &res_ts, &res_rec);
   EXPECT_EQ(res_tag, tag);
@@ -68,7 +68,7 @@ TEST(Logger, textfile) {
   fluent::Message *msg = logger->retain_message(tag);
   msg->set("num", 1);
   msg->set_ts(1514633395);
-  EXPECT_TRUE(logger->emit(msg));
+  EXPECT_TRUE(logger->emit_msg(msg));
   delete logger;
 
   std::string expected_text =
@@ -99,7 +99,7 @@ TEST_F(FluentTest, QueueLimit) {
   fluent::Message *msg = logger->retain_message(tag);
   msg->set("url", "https://github.com");
   msg->set("port", 443);
-  logger->emit(msg);
+  logger->emit_msg(msg);
   
   std::string res_tag, res_ts, res_rec;
   get_line(&res_tag, &res_ts, &res_rec);
@@ -107,23 +107,23 @@ TEST_F(FluentTest, QueueLimit) {
   EXPECT_EQ(res_rec, "{\"port\"=>443, \"url\"=>\"https://github.com\"}");
   this->stop_fluent();
 
-  // First emit after stopping fluentd should be succeess because of buffer.
+  // First emit_msg after stopping fluentd should be succeess because of buffer.
   msg = logger->retain_message(tag);
   msg->set("url", "https://github.com");
   msg->set("port", 443);
-  EXPECT_TRUE(logger->emit(msg));
+  EXPECT_TRUE(logger->emit_msg(msg));
 
   // Second emit may be fail but do not test because of non blocking socket.
   msg = logger->retain_message(tag);
   msg->set("url", "https://github.com");
   msg->set("port", 443);
-  logger->emit(msg);
+  logger->emiti_msg(msg);
 
   // Third emit should be fail because buffer is full.
   msg = logger->retain_message(tag);
   msg->set("url", "https://github.com");
   msg->set("port", 443);
-  EXPECT_FALSE(logger->emit(msg));
+  EXPECT_FALSE(logger->emit_msg(msg));
   
   delete logger;
 }
@@ -134,7 +134,7 @@ TEST(Logger, QueueEmitter) {
   fluent::MsgQueue *q = logger->new_msgqueue();
   fluent::Message *msg = logger->retain_message("test.log");
   msg->set("race", "gnome");
-  EXPECT_TRUE(logger->emit(msg));
+  EXPECT_TRUE(logger->emit_msg(msg));
 
   // Queue has the emitted message.
   msg = q->pop();
