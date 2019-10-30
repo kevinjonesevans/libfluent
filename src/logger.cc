@@ -25,10 +25,14 @@
  */
 
 #include <sstream>
-#include <sys/time.h>
 #include <time.h>
 #include <math.h>
+#ifdef _MSC_VER
+#include <winsock.h>
+#else
+#include <sys/time.h>
 #include <unistd.h>
+#endif
 
 #include "./fluent/logger.hpp"
 #include "./fluent/message.hpp"
@@ -37,14 +41,14 @@
 
 namespace fluent {
   Logger::Logger() {
-#ifdef _WIN32
+#ifdef _MSC_VER
 #ifndef FLUENTSKIPSTARTWINSOCK
     WORD wVersionRequested;
     WSADATA wsaData;
     wVersionRequested = MAKEWORD(2, 2);
     WSAStartup(wVersionRequested, &wsaData);
 #endif // FLUENTSKIPSTARTWINSOCK
-#endif // _WIN32
+#endif // _MSC_VER
   }
   Logger::~Logger() {
     // delete not used messages.
@@ -57,11 +61,11 @@ namespace fluent {
     std::for_each(this->queue_.begin(), this->queue_.end(),
                   [](MsgQueue* const &x) { delete x; });
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #ifndef FLUENTSKIPSTARTWINSOCK
     WSACleanup();
 #endif // FLUENTSKIPSTARTWINSOCK
-#endif // _WIN32
+#endif // _MSC_VER
   }
 
   void Logger::new_forward(const std::string &host, int port) {
@@ -76,16 +80,26 @@ namespace fluent {
     Emitter *e = new FileEmitter(fname, FileEmitter::MsgPack);
     this->emitter_.push_back(e);
   }
+#ifdef _MSC_VER
+  void Logger::new_dumpfile(HANDLE fd) {
+	  Emitter* e = new FileEmitter(fd, FileEmitter::MsgPack);
+#else
   void Logger::new_dumpfile(int fd) {
     Emitter *e = new FileEmitter(fd, FileEmitter::MsgPack);
+#endif
     this->emitter_.push_back(e);
   }
   void Logger::new_textfile(const std::string &fname) {
     Emitter *e = new FileEmitter(fname, FileEmitter::Text);
     this->emitter_.push_back(e);
   }
+#ifdef _MSC_VER
+  void Logger::new_textfile(HANDLE fd) {
+	  Emitter* e = new FileEmitter(fd, FileEmitter::Text);
+#else
   void Logger::new_textfile(int fd) {
     Emitter *e = new FileEmitter(fd, FileEmitter::Text);
+#endif
     this->emitter_.push_back(e);
   }
   MsgQueue* Logger::new_msgqueue() {

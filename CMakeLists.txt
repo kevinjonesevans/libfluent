@@ -4,7 +4,7 @@ PROJECT(libfluent)
 if(POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif()
-    
+
 SET(CMAKE_CXX_FLAGS "-Wall  -std=c++11")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 SET(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
@@ -23,8 +23,15 @@ LINK_DIRECTORIES(${LIB_DIR})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     INCLUDE_DIRECTORIES(/usr/local/include)
     LINK_DIRECTORIES(/usr/local/lib)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../msgpack/include")
+    LINK_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../msgpack/lib")
+    INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../pthread/include")
+    LINK_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../pthread/lib")
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../msgpack/include")
+    LINK_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../msgpack/lib")
 ENDIF()
-	
 # Build library
 
 FILE(GLOB BASESRCS "src/*.cc" "src/*.hpp")
@@ -38,6 +45,30 @@ IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 ADD_LIBRARY(fluent-shared SHARED $<TARGET_OBJECTS:objlib>)
 ADD_LIBRARY(fluent-static STATIC $<TARGET_OBJECTS:objlib>)
+
+TARGET_INCLUDE_DIRECTORIES(objlib PRIVATE "./msgpack/include")
+TARGET_INCLUDE_DIRECTORIES(objlib PRIVATE "./pthread/include")
+
+# include(ExternalProject)
+# ExternalProject_Add(project_msgpack
+#   GIT_REPOSITORY    https://github.com/msgpack/msgpack-c.git
+#   GIT_TAG           master
+#   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/msgpack-src"
+#   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/msgpack-build"
+# )
+#
+# ExternalProject_Get_Property(project_msgpack install_dir)
+#
+# # Include the msgpack library
+# if(MSVC)
+# 	add_library(msgpackc STATIC IMPORTED)
+#   set_property(TARGET fluent-static PROPERTY IMPORTED_LOCATION ${install_dir}/lib/msgpack.lib)
+#   add_dependencies(fluent-static msgpackc)
+# else()
+# 	add_library(libmsgpackc SHARED IMPORTED)
+# 	set_property(TARGET fluent-static PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libmsgpack.so)
+#   add_dependencies(fluent-static libmsgpackc)
+# endif()
 
 IF(USE_MSGPACK_STATIC)
   TARGET_LINK_LIBRARIES(fluent-shared msgpackc-static pthread)
