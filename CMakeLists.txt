@@ -49,27 +49,6 @@ ADD_LIBRARY(fluent-static STATIC $<TARGET_OBJECTS:objlib>)
 TARGET_INCLUDE_DIRECTORIES(objlib PRIVATE "./msgpack/include")
 TARGET_INCLUDE_DIRECTORIES(objlib PRIVATE "./pthread/include")
 
-# include(ExternalProject)
-# ExternalProject_Add(project_msgpack
-#   GIT_REPOSITORY    https://github.com/msgpack/msgpack-c.git
-#   GIT_TAG           master
-#   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/msgpack-src"
-#   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/msgpack-build"
-# )
-#
-# ExternalProject_Get_Property(project_msgpack install_dir)
-#
-# # Include the msgpack library
-# if(MSVC)
-# 	add_library(msgpackc STATIC IMPORTED)
-#   set_property(TARGET fluent-static PROPERTY IMPORTED_LOCATION ${install_dir}/lib/msgpack.lib)
-#   add_dependencies(fluent-static msgpackc)
-# else()
-# 	add_library(libmsgpackc SHARED IMPORTED)
-# 	set_property(TARGET fluent-static PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libmsgpack.so)
-#   add_dependencies(fluent-static libmsgpackc)
-# endif()
-
 IF(USE_MSGPACK_STATIC)
   TARGET_LINK_LIBRARIES(fluent-shared msgpackc-static pthread)
   TARGET_LINK_LIBRARIES(fluent-static msgpackc-static pthread)
